@@ -1,5 +1,0 @@
-meta:
-  environment: docker
-
-run:
-  persistenceMount: /app/data
