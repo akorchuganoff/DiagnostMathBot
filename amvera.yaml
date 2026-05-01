@@ -1,5 +1,7 @@
 meta:
   environment: docker
+  toolchain:                # Инструмент сборки
+    name: docker            # Название инструмента
 
 run:
   persistenceMount: /app/data
