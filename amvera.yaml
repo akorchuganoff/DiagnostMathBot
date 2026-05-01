@@ -3,3 +3,4 @@ meta:
 
 run:
   persistenceMount: /app/data
+  dockerfile: DiagnostMathBot/math_diagnostic_bot/Dockerfile
