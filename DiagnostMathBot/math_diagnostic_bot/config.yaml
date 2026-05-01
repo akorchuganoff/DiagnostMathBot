@@ -1,0 +1,175 @@
+bot:
+  token: "${TELEGRAM_BOT_TOKEN}"
+  notion_token: "${NOTION_TOKEN}"
+  tasks_database_id: "${NOTION_TASKS_DB_ID}"
+  tasks_data_source_id: "${NOTION_TASKS_DS_ID}"
+  crm_database_id: "${NOTION_CRM_DB_ID}"
+  crm_data_source_id: "${NOTION_CRM_DS_ID}"
+  kanban_database_id: "${NOTION_KANBAN_DB_ID}"
+  kanban_data_source_id: "${NOTION_KANBAN_DS_ID}"
+  channel_id: "${TELEGRAM_CHANNEL_ID}"
+  admin_chat_id: "${ADMIN_CHAT_ID}"
+  task_time_limit_sec: 90
+  timer_update_interval_sec: 30
+
+topics:
+  A1:
+    name: "Арифметика и дроби"
+    dependencies: []
+    in_ege_part1: true
+
+  A2:
+    name: "Рациональные числа"
+    dependencies: [A1]
+    in_ege_part1: true
+
+  A3:
+    name: "Линейные уравнения и функции"
+    dependencies: [A2]
+    in_ege_part1: true
+
+  A4:
+    name: "Квадратные уравнения и неравенства"
+    dependencies: [A3]
+    in_ege_part1: true
+
+  A5:
+    name: "Прогрессии и степенные функции"
+    dependencies: [A4]
+    in_ege_part1: true
+
+  A6:
+    name: "Логарифмы и показательная функция"
+    dependencies: [A5]
+    in_ege_part1: true
+
+  A7:
+    name: "Тригонометрия аналитическая"
+    dependencies: [A6]
+    in_ege_part1: true
+
+  A8:
+    name: "Производная"
+    dependencies: [A7]
+    in_ege_part1: true
+
+  J:
+    name: "Жизненные задачи"
+    dependencies: [A3]
+    in_ege_part1: true
+
+  G1:
+    name: "Основы геометрии"
+    dependencies: []
+    in_ege_part1: true
+
+  G2:
+    name: "Треугольники"
+    dependencies: [G1]
+    in_ege_part1: true
+
+  G3:
+    name: "Подобие и теорема Пифагора"
+    dependencies: [G2]
+    in_ege_part1: true
+
+  G4:
+    name: "Четырёхугольники и площади"
+    dependencies: [G3]
+    in_ege_part1: true
+
+  G5:
+    name: "Окружность"
+    dependencies: [G4]
+    in_ege_part1: true
+
+  G6:
+    name: "Тригонометрия в геометрии"
+    dependencies: [G3, G5, A7]
+    in_ege_part1: false
+
+  G7:
+    name: "Стереометрия"
+    dependencies: [G4, G5]
+    in_ege_part1: true
+
+  V:
+    name: "Векторы"
+    dependencies: [A3, G1]
+    in_ege_part1: false
+
+  S:
+    name: "Вероятность и статистика"
+    dependencies: [A1, A2]
+    in_ege_part1: true
+
+penalties:
+  base: 1.0
+  decay_factor: 0.5
+  min_weight: 0.1
+  skip_multiplier: 0.75
+  timeout_multiplier: 0.75
+
+funnel_stages:
+  - code: "new"
+    label: "Новый"
+    trigger: "bot_start"
+
+  - code: "questionnaire_done"
+    label: "Анкета заполнена"
+    trigger: "questionnaire_complete"
+
+  - code: "diagnosis_done"
+    label: "Диагностика завершена"
+    trigger: "all_tasks_answered"
+
+  - code: "report_sent"
+    label: "Отчёт получен"
+    trigger: "report_delivered"
+
+  - code: "waitlist"
+    label: "Лист ожидания"
+    trigger: "user_joined_waitlist"
+
+  - code: "subscribed"
+    label: "Подписчик канала"
+    trigger: "channel_subscription_verified"
+
+  - code: "purchased"
+    label: "Куплен курс"
+    trigger: "purchase_confirmed"
+
+warmup:
+  - trigger: "report_delivered"
+    delay_hours: 0
+    message: |
+      {child_name}, вот чеклист по теме «{weak_topic}» — бесплатно, прямо сейчас.
+      Именно с этой темы начинается всё остальное.
+    content_url: null
+    content_type: "pdf"
+
+  - trigger: "report_delivered"
+    delay_hours: 24
+    message: |
+      Как дела с темой «{weak_topic}»?
+      Большинство учеников, у которых она проседает, делают одну и ту же ошибку.
+      Расскажу подробнее — просто ответь «да».
+    content_url: null
+    content_type: "text"
+
+  - trigger: "report_delivered"
+    delay_hours: 72
+    message: |
+      Напоминаю: ты в листе ожидания на курс.
+      Когда откроем набор — ты узнаешь первым. Готовься.
+    content_url: null
+    content_type: "text"
+
+  - trigger: "report_delivered"
+    delay_hours: 168
+    message: |
+      Прошла неделя. По статистике, те, кто не начал работу над пробелами за эту неделю,
+      откладывают ещё на месяц. Не надо так.
+      Хочешь разбор одной задачи по теме «{weak_topic}»?
+    content_url: null
+    content_type: "text"

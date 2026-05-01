@@ -1,0 +1,69 @@
+"""One-time script: populate 'Задания диагностики' database with 18 tasks."""
+import asyncio
+import os
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+from dotenv import load_dotenv
+from notion_client import AsyncClient
+
+load_dotenv()
+
+TASKS_DB_ID = os.environ["NOTION_TASKS_DB_ID"]
+NOTION_TOKEN = os.environ["NOTION_TOKEN"]
+
+TASKS = [
+    (1,  "A1",  "Вычисли: (3/4 + 1/6) × 8 ÷ 0.5",                                                         "15",    0,    90),
+    (2,  "A2",  "Вычисли: (-3.5) + 7/2 - (-1.25) × 4",                                                      "-4.5",  0.01, 90),
+    (3,  "A3",  "Реши уравнение: 3(x - 2) + 5 = 2(x + 1). Найди x.",                                        "3",     0,    90),
+    (4,  "A4",  "Реши уравнение: x² - 5x + 6 = 0. Запиши больший корень.",                                   "3",     0,    90),
+    (5,  "A5",  "Арифметическая прогрессия: a₁ = 3, d = 7. Найди a₁₅.",                                     "101",   0,    90),
+    (6,  "A6",  "Вычисли: log₃81 - log₂8",                                                                   "1",     0,    90),
+    (7,  "A7",  "Вычисли: sin²60° + cos²60° + tg45°",                                                        "2",     0.01, 90),
+    (8,  "A8",  "Найди точку минимума функции f(x) = x² - 6x + 5.",                                          "3",     0,    90),
+    (9,  "J",   "Вклад 50 000 рублей под 10% годовых (простые проценты). Какая сумма будет через 2 года?",   "60000", 0,    90),
+    (10, "G1",  "Две параллельные прямые пересечены секущей. Один угол равен 65°. Найди смежный с ним угол.","115",   0,    90),
+    (11, "G2",  "В равнобедренном треугольнике угол при основании равен 72°. Найди угол при вершине (в градусах).","36",0,   90),
+    (12, "G3",  "В прямоугольном треугольнике катеты равны 6 и 8. Найди гипотенузу.",                        "10",    0,    90),
+    (13, "G4",  "Найди площадь трапеции с основаниями 6 и 10 и высотой 4.",                                  "32",    0,    90),
+    (14, "G5",  "Вписанный угол опирается на дугу 140°. Чему равен вписанный угол (в градусах)?",            "70",    0,    90),
+    (15, "G6",  "В треугольнике две стороны равны 5 и 7, угол между ними 60°. Найди площадь треугольника.",  "15.31", 0.1,  90),
+    (16, "G7",  "Цилиндр с радиусом основания 3 и высотой 4. Найди объём. Ответ запиши как число k (V = k×π).","36",  0,    90),
+    (17, "V",   "Даны векторы a=(3, 0) и b=(0, 4). Найди длину вектора a+b.",                                "5",     0,    90),
+    (18, "S",   "В коробке 3 красных и 7 синих шара. Вытаскивают один шар наугад. Найди вероятность того, что он красный. Запиши дробью (числитель через знак /, например 3/10).", "3/10", 0, 90),
+]
+
+
+async def seed() -> None:
+    client = AsyncClient(auth=NOTION_TOKEN)
+
+    TASKS_DS_ID = os.environ["NOTION_TASKS_DS_ID"]
+
+    # Проверим что база пустая перед вставкой
+    existing = await client.data_sources.query(TASKS_DS_ID, page_size=1)
+    if existing["results"]:
+        print(f"DB already has data ({len(existing['results'])}+ rows). Skipping seed.")
+        return
+
+    print(f"Seeding {len(TASKS)} tasks into {TASKS_DB_ID}...")
+    for task_id, topic, question, answer, tolerance, time_limit in TASKS:
+        page = await client.pages.create(
+            parent={"database_id": TASKS_DB_ID},
+            properties={
+                "question_text": {"title": [{"text": {"content": question}}]},
+                "task_id":        {"number": task_id},
+                "topic_code":     {"select": {"name": topic}},
+                "correct_answer": {"rich_text": [{"text": {"content": answer}}]},
+                "answer_tolerance": {"number": tolerance},
+                "time_limit_sec": {"number": time_limit},
+                "is_active":      {"checkbox": True},
+            },
+        )
+        print(f"  [{task_id:02d}] {topic} — {question[:50]}... → page_id={page['id'][:8]}")
+
+    print("Done.")
+
+
+if __name__ == "__main__":
+    asyncio.run(seed())
