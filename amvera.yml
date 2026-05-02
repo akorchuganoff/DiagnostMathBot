@@ -1,4 +1,5 @@
 meta:
+  toolchain: docker
   environment: docker
 
 build:
