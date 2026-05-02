@@ -1,0 +1,8 @@
+meta:
+  environment: docker
+
+build:
+  dockerfilePath: DiagnostMathBot/math_diagnostic_bot/Dockerfile
+
+run:
+  persistenceMount: /app/data
