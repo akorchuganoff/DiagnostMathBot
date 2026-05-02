@@ -5,6 +5,7 @@ meta:
 
 build:
   dockerfile: DiagnostMathBot/math_diagnostic_bot/Dockerfile
+  context: DiagnostMathBot/math_diagnostic_bot
 
 run:
   persistenceMount: /app/data
